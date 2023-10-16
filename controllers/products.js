@@ -1,8 +1,48 @@
 const Product = require("../models/product");
-const Moveme4 = require("../models/movement");
+const Movement = require("../models/movement");
 
 const getProducts = async (req, res) => {
-  const products = await Product.find({ deleted: false }).sort({ _id: -1 });
+  const products = await Product.aggregate([
+    {
+      $match: { deleted: false },
+    },
+    {
+      $lookup: {
+        from: "movements",
+        localField: "_id",
+        foreignField: "product",
+        as: "movements",
+      },
+    },
+    {
+      $unwind: {
+        path: "$movements",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $group: {
+        _id: { _id: "$_id", name: "$name", price: "$price" },
+        stock: {
+          $sum: "$movements.quantity",
+        },
+      },
+    },
+    {
+      $project: {
+        _id: "$_id._id",
+        name: "$_id.name",
+        price: "$_id.price",
+        stock: 1,
+      },
+    },
+    {
+      $sort: { _id: -1 },
+    },
+    {
+      $limit: 10,
+    },
+  ]);
 
   res.status(200).json({ ok: true, products, count: products.length });
 };
@@ -38,8 +78,13 @@ const deleteProduct = async (req, res) => {
 
 const createMovement = (req, res) => {
   const { productId } = req.params;
+  const { type, quantity } = req.body;
 
-  const newMovement = new Movement({ ...req.body, product: productId });
+  const newMovement = new Movement({
+    type,
+    quantity: type === "Compra" ? quantity : quantity * -1,
+    product: productId,
+  });
 
   newMovement
     .save()
