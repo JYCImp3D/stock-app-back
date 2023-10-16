@@ -10,6 +10,8 @@ const dbConnect = (app) => {
       app.listen(PORT, () => {
         console.log(`Servidor escuchando en el puerto ${PORT}`);
       });
+
+      console.log("Conexion exitosa a la BBDD");
     })
     .catch((err) => console.log(err));
 };
