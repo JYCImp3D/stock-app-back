@@ -7,6 +7,12 @@ const getProducts = async (req, res) => {
       $match: { deleted: false },
     },
     {
+      $sort: { _id: -1 },
+    },
+    {
+      $limit: 10,
+    },
+    {
       $lookup: {
         from: "movements",
         localField: "_id",
@@ -37,10 +43,7 @@ const getProducts = async (req, res) => {
       },
     },
     {
-      $sort: { _id: -1 },
-    },
-    {
-      $limit: 10,
+      $sort: { stock: -1 },
     },
   ]);
 
