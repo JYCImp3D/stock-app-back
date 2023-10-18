@@ -10,9 +10,6 @@ const getProducts = async (req, res) => {
       $sort: { _id: -1 },
     },
     {
-      $limit: 10,
-    },
-    {
       $lookup: {
         from: "movements",
         localField: "_id",
